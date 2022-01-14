@@ -2,10 +2,9 @@
   "scriptFile": "__init__.py",
   "bindings": [
     {
-      "name": "tempJSON",
+      "name": "temperaturesTable",
       "type": "table",
       "tableName": "temperatures",
-      "rowKey": "{date}",
       "connection": "AzureWebJobsStorage",
       "direction": "in"
     },
@@ -17,8 +16,7 @@
       "methods": [
         "get",
         "post"
-      ],
-      "route": "temp/{date}"
+      ]
     },
     {
       "type": "http",
