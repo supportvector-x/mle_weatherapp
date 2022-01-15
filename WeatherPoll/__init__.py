@@ -1,4 +1,5 @@
 import datetime
+from gc import get_referents
 import logging
 import datetime
 import pytz
@@ -10,22 +11,34 @@ import azure.functions as func
 
 
 def main(mytimer: func.TimerRequest, temperaturesTable: func.Out[str]) -> None:
+    """ Function polls api.openweathermap.org every hour and stores the temperature in Turku in UTC to a Azure table storage"""
 
-    k = '0836cb2fa32074b665161661e476fb53'
-    endpoint = "https://api.openweathermap.org/data/2.5/weather"
-    payload = {"q" : "Turku", "appid" : k}
+    def get_temperature(city: str="Turku") -> str:
+        """Gets the current weather from openweathermap.org
+        """
+        k = '0836cb2fa32074b665161661e476fb53'
+        endpoint = "https://api.openweathermap.org/data/2.5/weather"
+        payload = {"q": city, "appid": k, 'units': 'metric'}
+        response = requests.get(endpoint, params=payload)
+        # TODO: Implement retry and failure logic
+        return response.json()['main']['temp']
 
-    data =
-    utc_now = datetime.datetime.now(datetime.timezone.utc)
 
-    temp = random.randrange(0, 100)
+    temperature = get_temperature() # OK
+    dt_utc = datetime.datetime.now().replace(microsecond=0) # object
+    str_timestamp = dt_utc.isoformat(timespec='seconds') # as string
     rowKey = str(uuid.uuid4())
 
     data = {
         "partitionKey": "Turku",
         "rowKey": rowKey,
-        "timestamp_utc": str(utc_now),
-        "Temperature" : temp
+        "year": dt_utc.year,
+        "month": dt_utc.month,
+        "day": dt_utc.day,
+        "hour": dt_utc.hour,
+        "minute": dt_utc.minute,
+        "second": dt_utc.second,
+        "Temperature" : temperature
     }
 
     logging.info(f"DATA: {data}")

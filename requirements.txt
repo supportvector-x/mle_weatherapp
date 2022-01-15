@@ -5,3 +5,4 @@
 azure-functions
 pytz
 requests
+azure-data-tables
