@@ -19,12 +19,13 @@ def main(mytimer: func.TimerRequest, temperaturesTable: func.Out[str]) -> None:
         k = '0836cb2fa32074b665161661e476fb53'
         endpoint = "https://api.openweathermap.org/data/2.5/weather"
         payload = {"q": city, "appid": k, 'units': 'metric'}
-        response = requests.get(endpoint, params=payload)
+        response = requests.get(endpoint, params=payload) # add timeout
         # TODO: Implement retry and failure logic
         return response.json()['main']['temp']
 
 
     temperature = get_temperature() # OK
+    # TODO: check if respose provides timestamp of time of measurement and use that instead here
     dt_utc = datetime.datetime.now().replace(microsecond=0) # object
     str_timestamp = dt_utc.isoformat(timespec='seconds') # as string
     rowKey = str(uuid.uuid4())

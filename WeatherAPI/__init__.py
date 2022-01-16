@@ -3,9 +3,12 @@ import json
 import datetime
 import requests
 import re
+import os
 
 import azure.functions as func
 from azure.data.tables import TableServiceClient
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
 
 # TODO: Create function to parse the return table from the binding 
 # TODO: Make the function return the temperature that was closest to the requesting timestamp
@@ -13,7 +16,13 @@ from azure.data.tables import TableServiceClient
 def main(req: func.HttpRequest, temperaturesTable) -> func.HttpResponse:
     logging.info('Python HTTP trigger function processed a request.')
 
+    # KV
+    kv = SecretClient(vault_url="https://mle-weatherapp-kv.vault.azure.net/", credential=DefaultAzureCredential())
+    secret = kv.get_secret("weather-api-key")
+
+
     # Get connection to the table
+    # TODO: get the token away from here to KeyVault
     sas_token = r"https://turkuweather.table.core.windows.net/?sv=2020-08-04&ss=bfqt&srt=so&sp=rwdlacupix&se=2022-03-31T13:49:45Z&st=2022-01-15T06:49:45Z&spr=https&sig=NPe8n8ENrYx8W5WxZZnvOt3XL3ycCvDkbn5KKii%2B2wQ%3D"
     table_service = TableServiceClient(endpoint=sas_token)
     table = table_service.get_table_client("Temperatures")
@@ -37,6 +46,7 @@ def main(req: func.HttpRequest, temperaturesTable) -> func.HttpResponse:
         # choose the closest hour based on user input on timestmap
         # e.g. if input time is 15:31:00, return temperature at 16:00:00, if input minute < 30 return temperature at the started hour -> this case 15:00:00
         # TODO: Handle case where the hour shift pushes it into a future hour
+        # TODO: rebuild this entire module
 
         hour = int(hour) + 1 if int(minute) > 30 else hour
         qry_string = f"year eq {year} and month eq {month} and day eq {day} and hour eq {hour} and minute eq 0"
@@ -64,4 +74,4 @@ def main(req: func.HttpRequest, temperaturesTable) -> func.HttpResponse:
     #return func.HttpResponse(\
     #    f"Date: {date}\nTime: {time}\nTemperature: NA\n\nCURRENT TABLE DATA\n{[row for row in table]}"
     #    )
-    return func.HttpResponse(str(temperature))
+    return func.HttpResponse(str(temperature) + str(secret.value))

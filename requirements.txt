@@ -6,3 +6,5 @@ azure-functions
 pytz
 requests
 azure-data-tables
+azure-identity
+azure-keyvault-secrets
