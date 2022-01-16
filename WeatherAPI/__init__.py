@@ -10,21 +10,16 @@ from azure.data.tables import TableServiceClient
 from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
 
-# TODO: Create function to parse the return table from the binding 
-# TODO: Make the function return the temperature that was closest to the requesting timestamp
 
 def main(req: func.HttpRequest, temperaturesTable) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
 
     # KV
     kv = SecretClient(vault_url="https://mle-weatherapp-kv.vault.azure.net/", credential=DefaultAzureCredential())
-    secret = kv.get_secret("weather-api-key")
+    storage_secret = kv.get_secret("storage-sas-token")
 
 
     # Get connection to the table
-    # TODO: get the token away from here to KeyVault
-    sas_token = r"https://turkuweather.table.core.windows.net/?sv=2020-08-04&ss=bfqt&srt=so&sp=rwdlacupix&se=2022-03-31T13:49:45Z&st=2022-01-15T06:49:45Z&spr=https&sig=NPe8n8ENrYx8W5WxZZnvOt3XL3ycCvDkbn5KKii%2B2wQ%3D"
-    table_service = TableServiceClient(endpoint=sas_token)
+    table_service = TableServiceClient(endpoint=storage_secret.value)
     table = table_service.get_table_client("Temperatures")
 
     def valid_input_parameters(date: str, time: str) -> bool:
@@ -74,4 +69,4 @@ def main(req: func.HttpRequest, temperaturesTable) -> func.HttpResponse:
     #return func.HttpResponse(\
     #    f"Date: {date}\nTime: {time}\nTemperature: NA\n\nCURRENT TABLE DATA\n{[row for row in table]}"
     #    )
-    return func.HttpResponse(str(temperature) + str(secret.value))
+    return func.HttpResponse(str(temperature))

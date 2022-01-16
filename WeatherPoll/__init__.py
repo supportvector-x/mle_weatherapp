@@ -2,23 +2,27 @@ import datetime
 from gc import get_referents
 import logging
 import datetime
-import pytz
 import json
-import random
 import uuid
 import requests
+
 import azure.functions as func
+from azure.keyvault.secrets import SecretClient
+from azure.identity import DefaultAzureCredential
 
 
 def main(mytimer: func.TimerRequest, temperaturesTable: func.Out[str]) -> None:
     """ Function polls api.openweathermap.org every hour and stores the temperature in Turku in UTC to a Azure table storage"""
 
+    # TODO: Store as environment variables
+    kv = SecretClient(vault_url="https://mle-weatherapp-kv.vault.azure.net/", credential=DefaultAzureCredential())
+    api_secret = kv.get_secret("weather-api-key")
+
     def get_temperature(city: str="Turku") -> str:
         """Gets the current weather from openweathermap.org
         """
-        k = '0836cb2fa32074b665161661e476fb53'
         endpoint = "https://api.openweathermap.org/data/2.5/weather"
-        payload = {"q": city, "appid": k, 'units': 'metric'}
+        payload = {"q": city, "appid": api_secret.value, 'units': 'metric'}
         response = requests.get(endpoint, params=payload) # add timeout
         # TODO: Implement retry and failure logic
         return response.json()['main']['temp']
