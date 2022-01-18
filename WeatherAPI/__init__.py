@@ -9,7 +9,7 @@ from azure.identity import DefaultAzureCredential
 
 def main(req: func.HttpRequest, temperaturesTable) -> func.HttpResponse:
     """Functions takes date (YYYY-MM-DD) and time (HH:MM:SS) as input and returns
-    the recorded temperature from Turku at the closest recorded full hour of the input time (UTC)
+    the recorded temperature from Turku at the closest recorded full hour of the input time
 
     ***********
     * EXAMPLE *
@@ -17,8 +17,7 @@ def main(req: func.HttpRequest, temperaturesTable) -> func.HttpResponse:
 
     import requests
     
-    # Replace FUNCTION_ENDPOINT with whatever endpoint the function is assigned to
-    response = requests.get(FUNCTION_ENDPOINT, params={"date": "2022-01-17", "time": "10:00:00"})
+    response = requests.get(FUNCTION_URL, params={"date": "2022-01-17", "time": "10:00:00"})
     print(response.json())
 
     >> -2.03
