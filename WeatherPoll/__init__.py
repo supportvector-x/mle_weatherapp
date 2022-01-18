@@ -42,7 +42,6 @@ def main(mytimer: func.TimerRequest, temperaturesTable: func.Out[str]) -> None:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logging.error(f"Error while calling openweathermap. Error msg: {str(e)}")
-        # TODO: Implement retry and failure logic
         return response.json()['main']['temp']
 
     temperature = get_temperature()
